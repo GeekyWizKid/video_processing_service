@@ -140,6 +140,9 @@ curl -O http://127.0.0.1:5000/download/85_1734421479_with_subtitles.mp4
 <a href="https://github.com/GeekyWizKid/video_processing_service/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=GeekyWizKid/video_processing_service" />
 </a>
+<a href="https://github.com/GeekyWizKid/video_processing_service/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=WyInnovate/video_processing_service" />
+</a>
 
 ## 许可
 
