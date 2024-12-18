@@ -1,17 +1,43 @@
+import re
+
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 
 from config.paths import PathConfig
-from src.video_processing import extract_audio_from_video, generate_subtitles, embed_subtitles
+from src.video_processing import extract_audio_from_video, generate_subtitles, embed_subtitles, \
+    generate_subtitles_with_translation
 import os
 
 app = Flask(__name__)
 CORS(app)
 
+def get_unique_filename(directory, filename):
+    """
+    生成唯一文件名，避免重名文件覆盖
+    :param directory: 保存的目录路径
+    :param filename: 原始文件名
+    :return: 一个不重复的文件名
+    """
+    base, extension = os.path.splitext(filename)
+    # 移除 base 末尾已有的 (数字) 后缀，避免重复叠加
+    base = re.sub(r'\(\d+\)$', '', base)
+
+    counter = 1
+    new_filename = f"{base}{extension}"
+    new_path = os.path.join(directory, new_filename)
+
+    while os.path.exists(new_path):
+        counter += 1
+        new_filename = f"{base}({counter}){extension}"
+        new_path = os.path.join(directory, new_filename)
+    return new_filename
+
 
 @app.route('/test', methods=['GET'])
 def test():
     return jsonify({'message': 'Server is running'})
+
+
 @app.route('/upload', methods=['POST'])
 def upload_video():
     # 确保相关目录已存在
@@ -24,19 +50,35 @@ def upload_video():
     if file.filename == '':
         return jsonify({'error': 'No selected file'}), 400
 
-    video_path = PathConfig.get_upload_path(file.filename)
+    # 处理上传文件名，确保唯一性
+    unique_filename = get_unique_filename(PathConfig.UPLOAD_DIR, file.filename)
+    video_path = PathConfig.get_upload_path(unique_filename)
     file.save(video_path)
 
+    # 从唯一文件名提取稳定的 base 名称（去掉扩展名）
+    base = os.path.splitext(unique_filename)[0]
+
     # 音频提取
-    audio_path = PathConfig.get_audio_path(f"{file.filename.split('.')[0]}.wav")
+    audio_path = PathConfig.get_audio_path(f"{base}.wav")
     extract_audio_from_video(video_path, audio_path)
 
+    # 检查请求中是否包含 translate 参数
+    # translate_target_language = None
+    translate_target_language = request.form.get('translate')
+
     # 生成字幕
-    subtitle_path = PathConfig.get_subtitle_path(f"{file.filename.split('.')[0]}.srt")
-    generate_subtitles(audio_path, subtitle_path)
+    subtitle_path = PathConfig.get_subtitle_path(f"{base}.srt")
+    if translate_target_language:
+        success = generate_subtitles_with_translation(audio_path, subtitle_path,
+                                                      target_language=translate_target_language)
+    else:
+        success = generate_subtitles(audio_path, subtitle_path)
+
+    if not success:
+        return jsonify({'error': '生成字幕时出错'}), 500
 
     # 嵌入字幕
-    output_video_path = PathConfig.get_output_path(f"{file.filename.split('.')[0]}_with_subtitles.mp4")
+    output_video_path = PathConfig.get_output_path(f"{base}_with_subtitles.mp4")
     embed_subtitles(video_path, subtitle_path, output_video_path)
 
     return jsonify({
