@@ -135,7 +135,6 @@ curl -O http://127.0.0.1:5000/download/85_1734421479_with_subtitles.mp4
 4. 推送到分支 (git push origin feature-branch)
 5. 创建一个新的 Pull Request
 
-### 贡献者
 
 ### 贡献者
 
