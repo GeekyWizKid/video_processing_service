@@ -1,5 +1,8 @@
 # Video Processing Service
 
+## Slogan
+从此再无生番!
+
 ## 项目介绍
 
 **Video Processing Service** 是一个用于自动化视频处理的服务，支持从视频中提取音频、生成字幕并将字幕嵌入到视频中的功能。
