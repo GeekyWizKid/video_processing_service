@@ -63,7 +63,6 @@ def upload_video():
     extract_audio_from_video(video_path, audio_path)
 
     # 检查请求中是否包含 translate 参数
-    # translate_target_language = None
     translate_target_language = request.form.get('translate')
 
     # 生成字幕
@@ -77,18 +76,35 @@ def upload_video():
     if not success:
         return jsonify({'error': '生成字幕时出错'}), 500
 
-    # 嵌入字幕
-    output_video_path = PathConfig.get_output_path(f"{base}_with_subtitles.mp4")
-    embed_subtitles(video_path, subtitle_path, output_video_path)
+    # 获取用户的返回选项
+    return_option = request.form.get('return_option', 'video')  # 默认返回视频
 
-    return jsonify({
-        'message': '视频处理完成',
-        'download_url': f'/download/{os.path.basename(output_video_path)}'
-    })
+    # 处理返回字幕文件或视频文件
+    if return_option == 'subtitle':
+        # 返回字幕文件的 JSON 格式链接
+        return jsonify({
+            'message': '字幕文件处理完成',
+            'download_url': f'/download/{os.path.basename(subtitle_path)}'
+        })
+    else:
+        # 嵌入字幕并返回视频文件的 JSON 格式链接
+        output_video_path = PathConfig.get_output_path(f"{base}_with_subtitles.mp4")
+        embed_subtitles(video_path, subtitle_path, output_video_path)
+
+        return jsonify({
+            'message': '视频处理完成',
+            'download_url': f'/download/{os.path.basename(output_video_path)}'
+        })
 
 @app.route('/download/<filename>', methods=['GET'])
 def download_file(filename):
-    return send_from_directory(PathConfig.OUTPUT_DIR, filename)
+    # 根据文件扩展名判断是否是字幕文件
+    if filename.endswith('.srt'):
+        directory = PathConfig.SUBTITLE_DIR
+    else:
+        directory = PathConfig.OUTPUT_DIR
+
+    return send_from_directory(directory, filename)
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
