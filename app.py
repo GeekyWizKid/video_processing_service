@@ -7,6 +7,7 @@ from config.paths import PathConfig
 from src.video_processing import extract_audio_from_video, generate_subtitles, embed_subtitles, \
     generate_subtitles_with_translation
 import os
+import subprocess
 
 app = Flask(__name__)
 CORS(app)
@@ -95,6 +96,49 @@ def upload_video():
             'message': '视频处理完成',
             'download_url': f'/download/{os.path.basename(output_video_path)}'
         })
+
+
+@app.route('/burn', methods=['POST'])
+def burn_subtitles():
+    # 确保请求体是 JSON
+    if not request.is_json:
+        return jsonify({'error': 'Invalid content type. Please use application/json'}), 400
+
+    # 从 JSON 请求体中获取 'filename'
+    data = request.get_json()
+    filename = data.get('filename')
+    if not filename:
+        return jsonify({'error': 'Filename is required'}), 400
+
+    # 确保 PathConfig 的目录已经存在
+    PathConfig.ensure_dirs(
+        [PathConfig.UPLOAD_DIR, PathConfig.OUTPUT_DIR, PathConfig.AUDIO_DIR, PathConfig.SUBTITLE_DIR]
+    )
+
+    # 获取上传目录中的视频文件和字幕文件
+    video_path = PathConfig.get_upload_path(f"{filename}.mp4")
+    subtitle_path = PathConfig.get_subtitle_path(f"{filename}.srt")
+
+    # 检查视频文件和字幕文件是否存在
+    if not os.path.exists(video_path):
+        return jsonify({'error': f'Video file "{filename}.mp4" not found'}), 404
+    if not os.path.exists(subtitle_path):
+        return jsonify({'error': f'Subtitle file "{filename}.srt" not found'}), 404
+
+    # 输出带字幕的视频路径
+    output_video_path = PathConfig.get_output_path(f"{filename}_with_subtitles.mp4")
+
+    try:
+        # 嵌入字幕
+        embed_subtitles(video_path, subtitle_path, output_video_path)
+    except Exception as e:
+        return jsonify({'error': f'Failed to burn subtitles: {str(e)}'}), 500
+
+    # 返回下载地址
+    return jsonify({
+        'message': '字幕烧录完成',
+        'download_url': f'/download/{os.path.basename(output_video_path)}'
+    })
 
 @app.route('/download/<filename>', methods=['GET'])
 def download_file(filename):
