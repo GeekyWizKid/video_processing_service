@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>视频字幕处理</title>
+    <style>
+        /* 全局样式 */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #181818; /* 深色背景 */
+            color: #f5f5f5; /* 浅色字体 */
+        }
+
+        a {
+            text-decoration: none;
+            color: #ff9900; /* 按钮和链接的主色调 */
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* 容器样式 */
+        .container {
+            background: #242424; /* 深灰色背景 */
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            width: 400px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #ff9900; /* 标题颜色 */
+        }
+
+        label {
+            display: block;
+            margin: 10px 0 5px;
+            font-weight: bold;
+            color: #f5f5f5;
+        }
+
+        /* 输入框样式 */
+        input[type="file"],
+        select,
+        button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        input[type="file"],
+        select {
+            background-color: #333333; /* 输入框背景颜色 */
+            color: #f5f5f5; /* 输入框字体颜色 */
+        }
+
+        input[type="file"]:hover,
+        select:hover {
+            background-color: #444444; /* 输入框悬停效果 */
+        }
+
+        /* 按钮样式 */
+        button {
+            background-color: #ff9900; /* 按钮背景颜色 */
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #cc7a00; /* 按钮悬停效果 */
+        }
+
+        /* 消息样式 */
+        .message {
+            margin-top: 20px;
+            font-size: 16px;
+            color: #00ff99; /* 成功消息的颜色 */
+        }
+
+        .error {
+            color: #ff4d4d; /* 错误消息的颜色 */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>视频字幕处理</h1>
+        <form id="uploadForm">
+            <label for="file">上传视频文件</label>
+            <input type="file" id="file" name="file" accept="video/*" required>
+
+            <label for="translate">选择翻译语言 (可选)</label>
+            <select id="translate" name="translate">
+                <option value="">不翻译</option>
+                <option value="en">英语</option>
+                <option value="zh">中文</option>
+                <option value="es">西班牙语</option>
+                <option value="fr">法语</option>
+                <!-- 可根据需求添加更多语言 -->
+            </select>
+
+            <label for="return_option">返回选项</label>
+            <select id="return_option" name="return_option">
+                <option value="video">返回带字幕的视频</option>
+                <option value="subtitle">返回字幕文件</option>
+            </select>
+
+            <button type="submit">开始处理</button>
+        </form>
+        <div class="message" id="message"></div>
+    </div>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const formData = new FormData();
+            const fileInput = document.getElementById('file');
+            const translate = document.getElementById('translate').value;
+            const returnOption = document.getElementById('return_option').value;
+
+            if (fileInput.files.length === 0) {
+                alert("请上传一个视频文件！");
+                return;
+            }
+
+            formData.append('file', fileInput.files[0]);
+            if (translate) {
+                formData.append('translate', translate);
+            }
+            formData.append('return_option', returnOption);
+
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = "处理中，请稍候...";
+            messageDiv.classList.remove('error');
+            messageDiv.classList.add('message');
+
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || "上传失败");
+                }
+
+                const data = await response.json();
+                messageDiv.innerHTML = `
+                    ${data.message}<br>
+                    <a href="${data.download_url}" target="_blank">点击下载</a>
+                `;
+            } catch (error) {
+                messageDiv.textContent = `发生错误: ${error.message}`;
+                messageDiv.classList.add('error');
+            }
+        });
+    </script>
+</body>
+</html>
