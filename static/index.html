@@ -3,44 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>视频字幕处理</title>
+    <title>从此再无生番</title>
     <style>
         /* 全局样式 */
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
             margin: 0;
             padding: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: #181818; /* 深色背景 */
-            color: #f5f5f5; /* 浅色字体 */
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364); /* 渐变背景 */
+            color: #f5f5f5;
         }
 
-        a {
-            text-decoration: none;
-            color: #ff9900; /* 按钮和链接的主色调 */
-        }
-
-        a:hover {
-            text-decoration: underline;
-        }
-
-        /* 容器样式 */
+        /* 玻璃拟态容器 */
         .container {
-            background: #242424; /* 深灰色背景 */
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            background: rgba(255, 255, 255, 0.1); /* 半透明背景 */
+            backdrop-filter: blur(10px); /* 模糊效果 */
+            -webkit-backdrop-filter: blur(10px); /* 兼容 Safari */
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            padding: 30px;
             width: 400px;
             text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2); /* 边框 */
         }
 
         h1 {
-            font-size: 24px;
+            font-size: 26px;
             margin-bottom: 20px;
             color: #ff9900; /* 标题颜色 */
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); /* 字体阴影 */
         }
 
         label {
@@ -50,52 +45,84 @@
             color: #f5f5f5;
         }
 
-        /* 输入框样式 */
-        input[type="file"],
-        select,
-        button {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            border: none;
-            border-radius: 5px;
-            font-size: 14px;
-            outline: none;
-        }
-
+        /* 输入框和选择框样式 */
         input[type="file"],
         select {
-            background-color: #333333; /* 输入框背景颜色 */
-            color: #f5f5f5; /* 输入框字体颜色 */
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            background: rgba(255, 255, 255, 0.2); /* 半透明背景 */
+            color: #f5f5f5;
+            outline: none;
+            transition: all 0.3s ease;
         }
 
         input[type="file"]:hover,
         select:hover {
-            background-color: #444444; /* 输入框悬停效果 */
+            background: rgba(255, 255, 255, 0.3); /* 悬停效果 */
         }
 
         /* 按钮样式 */
         button {
-            background-color: #ff9900; /* 按钮背景颜色 */
-            color: white;
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
             font-weight: bold;
+            background: linear-gradient(45deg, #ff9900, #ff6600); /* 渐变按钮背景 */
+            color: white;
             cursor: pointer;
-            transition: background-color 0.3s ease;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
 
         button:hover {
-            background-color: #cc7a00; /* 按钮悬停效果 */
+            transform: translateY(-2px); /* 悬停时微微上移 */
+            box-shadow: 0 4px 10px rgba(255, 153, 0, 0.5); /* 按钮阴影 */
+        }
+
+        button:active {
+            transform: translateY(2px); /* 点击时下移 */
+        }
+
+        button:disabled {
+            background: #888; /* 禁用时按钮颜色 */
+            cursor: not-allowed;
         }
 
         /* 消息样式 */
         .message {
             margin-top: 20px;
             font-size: 16px;
-            color: #00ff99; /* 成功消息的颜色 */
+            color: #00ff99; /* 成功消息颜色 */
         }
 
         .error {
-            color: #ff4d4d; /* 错误消息的颜色 */
+            color: #ff4d4d; /* 错误消息颜色 */
+        }
+
+        /* 加载动画样式 */
+        .loading {
+            margin: 20px auto;
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            border-top: 4px solid #ff9900;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
         }
     </style>
 </head>
@@ -106,15 +133,15 @@
             <label for="file">上传视频文件</label>
             <input type="file" id="file" name="file" accept="video/*" required>
 
-            <label for="translate">选择翻译语言 (可选)</label>
-            <select id="translate" name="translate">
-                <option value="">不翻译</option>
-                <option value="en">英语</option>
-                <option value="zh">中文</option>
-                <option value="es">西班牙语</option>
-                <option value="fr">法语</option>
-                <!-- 可根据需求添加更多语言 -->
-            </select>
+<!--            <label for="translate">选择翻译语言 (可选)</label>-->
+<!--            <select id="translate" name="translate">-->
+<!--                <option value="">不翻译</option>-->
+<!--                <option value="en">英语</option>-->
+<!--                <option value="zh">中文</option>-->
+<!--                <option value="es">西班牙语</option>-->
+<!--                <option value="fr">法语</option>-->
+<!--                &lt;!&ndash; 可根据需求添加更多语言 &ndash;&gt;-->
+<!--            </select>-->
 
             <label for="return_option">返回选项</label>
             <select id="return_option" name="return_option">
@@ -122,8 +149,9 @@
                 <option value="subtitle">返回字幕文件</option>
             </select>
 
-            <button type="submit">开始处理</button>
+            <button type="submit" id="submitButton">开始处理</button>
         </form>
+        <div class="loading" id="loading" style="display: none;"></div>
         <div class="message" id="message"></div>
     </div>
 
@@ -135,6 +163,9 @@
             const fileInput = document.getElementById('file');
             const translate = document.getElementById('translate').value;
             const returnOption = document.getElementById('return_option').value;
+            const submitButton = document.getElementById('submitButton');
+            const loadingDiv = document.getElementById('loading');
+            const messageDiv = document.getElementById('message');
 
             if (fileInput.files.length === 0) {
                 alert("请上传一个视频文件！");
@@ -147,10 +178,11 @@
             }
             formData.append('return_option', returnOption);
 
-            const messageDiv = document.getElementById('message');
-            messageDiv.textContent = "处理中，请稍候...";
+            // 禁用按钮并显示加载动画
+            submitButton.disabled = true;
+            loadingDiv.style.display = 'block';
+            messageDiv.textContent = '';
             messageDiv.classList.remove('error');
-            messageDiv.classList.add('message');
 
             try {
                 const response = await fetch('/upload', {
@@ -171,6 +203,10 @@
             } catch (error) {
                 messageDiv.textContent = `发生错误: ${error.message}`;
                 messageDiv.classList.add('error');
+            } finally {
+                // 恢复按钮状态并隐藏加载动画
+                submitButton.disabled = false;
+                loadingDiv.style.display = 'none';
             }
         });
     </script>
