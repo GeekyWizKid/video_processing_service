@@ -1,157 +1,340 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>从此再无生番</title>
     <style>
-        /* 全局样式 */
-        body {
-            font-family: 'Arial', sans-serif;
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Microsoft YaHei', sans-serif;
+            background: #000000;
+            color: #ffffff;
+            min-height: 100vh;
             display: flex;
-            justify-content: center;
             align-items: center;
-            height: 100vh;
-            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364); /* 渐变背景 */
-            color: #f5f5f5;
+            justify-content: center;
+            position: relative;
+            overflow-x: hidden;
         }
 
-        /* 玻璃拟态容器 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #000000 0%, #1a1a1a 25%, #000000 50%, #0d0d0d 75%, #000000 100%);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+            z-index: -1;
+        }
+
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
         .container {
-            background: rgba(255, 255, 255, 0.1); /* 半透明背景 */
-            backdrop-filter: blur(10px); /* 模糊效果 */
-            -webkit-backdrop-filter: blur(10px); /* 兼容 Safari */
-            border-radius: 15px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            padding: 30px;
-            width: 400px;
+            background: rgba(20, 20, 20, 0.95);
+            border: 1px solid rgba(255, 153, 0, 0.2);
+            border-radius: 16px;
+            padding: 40px;
+            width: 100%;
+            max-width: 480px;
+            backdrop-filter: blur(20px);
+            box-shadow: 
+                0 20px 40px rgba(255, 153, 0, 0.1),
+                0 0 100px rgba(255, 153, 0, 0.05),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 153, 0, 0.1), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .logo {
             text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.2); /* 边框 */
+            margin-bottom: 40px;
         }
 
-        h1 {
-            font-size: 26px;
-            margin-bottom: 20px;
-            color: #ff9900; /* 标题颜色 */
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); /* 字体阴影 */
+        .logo h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #ff9900;
+            margin-bottom: 8px;
+            text-shadow: 0 0 20px rgba(255, 153, 0, 0.5);
+            letter-spacing: 1px;
         }
 
-        label {
+        .logo p {
+            color: #cccccc;
+            font-size: 14px;
+            font-weight: 400;
+            opacity: 0.8;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+            position: relative;
+        }
+
+        .form-group label {
             display: block;
-            margin: 10px 0 5px;
-            font-weight: bold;
-            color: #f5f5f5;
+            color: #ffffff;
+            font-weight: 500;
+            margin-bottom: 8px;
+            font-size: 14px;
+            letter-spacing: 0.5px;
         }
 
-        /* 输入框和选择框样式 */
-        input[type="file"],
+        .file-input-wrapper {
+            position: relative;
+            display: block;
+        }
+
+        .file-input {
+            width: 100%;
+            height: 56px;
+            padding: 16px;
+            background: rgba(40, 40, 40, 0.8);
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            border-radius: 12px;
+            color: #ffffff;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .file-input:hover {
+            border-color: rgba(255, 153, 0, 0.6);
+            background: rgba(50, 50, 50, 0.9);
+            box-shadow: 0 0 20px rgba(255, 153, 0, 0.1);
+        }
+
+        .file-input:focus {
+            outline: none;
+            border-color: #ff9900;
+            box-shadow: 0 0 0 3px rgba(255, 153, 0, 0.2);
+        }
+
         select {
             width: 100%;
-            padding: 12px;
-            margin-bottom: 15px;
-            border: none;
-            border-radius: 8px;
+            height: 56px;
+            padding: 16px;
+            background: rgba(40, 40, 40, 0.8);
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            border-radius: 12px;
+            color: #ffffff;
             font-size: 14px;
-            background: rgba(255, 255, 255, 0.2); /* 半透明背景 */
-            color: #f5f5f5;
-            outline: none;
-            transition: all 0.3s ease;
-        }
-
-        input[type="file"]:hover,
-        select:hover {
-            background: rgba(255, 255, 255, 0.3); /* 悬停效果 */
-        }
-
-        /* 按钮样式 */
-        button {
-            width: 100%;
-            padding: 12px;
-            margin-top: 10px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
-            background: linear-gradient(45deg, #ff9900, #ff6600); /* 渐变按钮背景 */
-            color: white;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: all 0.3s ease;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23ff9900' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 16px center;
+            background-repeat: no-repeat;
+            background-size: 16px;
         }
 
-        button:hover {
-            transform: translateY(-2px); /* 悬停时微微上移 */
-            box-shadow: 0 4px 10px rgba(255, 153, 0, 0.5); /* 按钮阴影 */
+        select:hover {
+            border-color: rgba(255, 153, 0, 0.6);
+            background-color: rgba(50, 50, 50, 0.9);
+            box-shadow: 0 0 20px rgba(255, 153, 0, 0.1);
         }
 
-        button:active {
-            transform: translateY(2px); /* 点击时下移 */
+        select:focus {
+            outline: none;
+            border-color: #ff9900;
+            box-shadow: 0 0 0 3px rgba(255, 153, 0, 0.2);
         }
 
-        button:disabled {
-            background: #888; /* 禁用时按钮颜色 */
-            cursor: not-allowed;
+        select option {
+            background: #2a2a2a;
+            color: #ffffff;
+            padding: 12px;
         }
 
-        /* 消息样式 */
-        .message {
-            margin-top: 20px;
+        .submit-btn {
+            width: 100%;
+            height: 56px;
+            background: linear-gradient(135deg, #ff9900 0%, #ff7700 100%);
+            border: none;
+            border-radius: 12px;
+            color: #ffffff;
             font-size: 16px;
-            color: #00ff99; /* 成功消息颜色 */
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 16px;
         }
 
-        .error {
-            color: #ff4d4d; /* 错误消息颜色 */
+        .submit-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
         }
 
-        /* 加载动画样式 */
+        .submit-btn:hover::before {
+            left: 100%;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 10px 30px rgba(255, 153, 0, 0.4),
+                0 0 40px rgba(255, 153, 0, 0.2);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .submit-btn:disabled {
+            background: rgba(100, 100, 100, 0.5);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .submit-btn:disabled::before {
+            display: none;
+        }
+
         .loading {
-            margin: 20px auto;
-            border: 4px solid rgba(255, 255, 255, 0.2);
-            border-top: 4px solid #ff9900;
+            display: none;
+            width: 48px;
+            height: 48px;
+            margin: 24px auto;
+            border: 3px solid rgba(255, 153, 0, 0.2);
+            border-top: 3px solid #ff9900;
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
             animation: spin 1s linear infinite;
         }
 
         @keyframes spin {
-            0% {
-                transform: rotate(0deg);
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .message {
+            margin-top: 24px;
+            padding: 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.5;
+            text-align: center;
+            word-break: break-all;
+        }
+
+        .message.success {
+            background: rgba(0, 255, 153, 0.1);
+            border: 1px solid rgba(0, 255, 153, 0.3);
+            color: #00ff99;
+        }
+
+        .message.error {
+            background: rgba(255, 77, 77, 0.1);
+            border: 1px solid rgba(255, 77, 77, 0.3);
+            color: #ff4d4d;
+        }
+
+        .message a {
+            color: #ff9900;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-block;
+            margin-top: 8px;
+            padding: 8px 16px;
+            background: rgba(255, 153, 0, 0.1);
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .message a:hover {
+            background: rgba(255, 153, 0, 0.2);
+            transform: translateY(-1px);
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                margin: 20px;
+                padding: 24px;
+                max-width: none;
             }
-            100% {
-                transform: rotate(360deg);
+            
+            .logo h1 {
+                font-size: 24px;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>视频字幕处理</h1>
+        <div class="logo">
+            <h1>从此再无生番</h1>
+            <p>视频字幕处理服务</p>
+        </div>
+        
         <form id="uploadForm">
-            <label for="file">上传视频文件</label>
-            <input type="file" id="file" name="file" accept="video/*" required>
+            <div class="form-group">
+                <label for="file">选择视频文件</label>
+                <div class="file-input-wrapper">
+                    <input type="file" id="file" name="file" class="file-input" accept="video/*" required>
+                </div>
+            </div>
 
-<!--            <label for="translate">选择翻译语言 (可选)</label>-->
-<!--            <select id="translate" name="translate">-->
-<!--                <option value="">不翻译</option>-->
-<!--                <option value="en">英语</option>-->
-<!--                <option value="zh">中文</option>-->
-<!--                <option value="es">西班牙语</option>-->
-<!--                <option value="fr">法语</option>-->
-<!--                &lt;!&ndash; 可根据需求添加更多语言 &ndash;&gt;-->
-<!--            </select>-->
+            <div class="form-group">
+                <label for="return_option">输出选项</label>
+                <select id="return_option" name="return_option">
+                    <option value="video">生成带字幕的视频</option>
+                    <option value="subtitle">仅生成字幕文件</option>
+                </select>
+            </div>
 
-            <label for="return_option">返回选项</label>
-            <select id="return_option" name="return_option">
-                <option value="video">返回带字幕的视频</option>
-                <option value="subtitle">返回字幕文件</option>
-            </select>
-
-            <button type="submit" id="submitButton">开始处理</button>
+            <button type="submit" id="submitButton" class="submit-btn">开始处理</button>
         </form>
-        <div class="loading" id="loading" style="display: none;"></div>
+        
+        <div class="toolbar-section" style="margin-top: 30px; text-align: center;">
+            <a href="/editor" class="btn" style="text-decoration: none; display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #666666 0%, #444444 100%); border-radius: 8px; color: #ffffff; font-weight: 500; transition: all 0.3s ease;">
+                字幕编辑器
+            </a>
+        </div>
+        
+        <div class="loading" id="loading"></div>
         <div class="message" id="message"></div>
     </div>
 
@@ -161,28 +344,25 @@
 
             const formData = new FormData();
             const fileInput = document.getElementById('file');
-            const translate = document.getElementById('translate').value;
             const returnOption = document.getElementById('return_option').value;
             const submitButton = document.getElementById('submitButton');
             const loadingDiv = document.getElementById('loading');
             const messageDiv = document.getElementById('message');
 
             if (fileInput.files.length === 0) {
-                alert("请上传一个视频文件！");
+                showMessage('请选择一个视频文件！', 'error');
                 return;
             }
 
             formData.append('file', fileInput.files[0]);
-            if (translate) {
-                formData.append('translate', translate);
-            }
             formData.append('return_option', returnOption);
 
-            // 禁用按钮并显示加载动画
+            // 更新UI状态
             submitButton.disabled = true;
+            submitButton.textContent = '处理中...';
             loadingDiv.style.display = 'block';
             messageDiv.textContent = '';
-            messageDiv.classList.remove('error');
+            messageDiv.className = 'message';
 
             try {
                 const response = await fetch('/upload', {
@@ -196,17 +376,44 @@
                 }
 
                 const data = await response.json();
-                messageDiv.innerHTML = `
-                    ${data.message}<br>
-                    <a href="${data.download_url}" target="_blank">点击下载</a>
-                `;
+                const returnOption = document.getElementById('return_option').value;
+                
+                let messageContent = `<div>${data.message}</div>`;
+                messageContent += `<a href="${data.download_url}" target="_blank">点击下载文件</a>`;
+                
+                // 如果生成了字幕文件，添加编辑字幕的链接
+                if (returnOption === 'subtitle' || returnOption === 'video') {
+                    const fileInput = document.getElementById('file');
+                    const originalFilename = fileInput.files[0].name;
+                    const baseName = originalFilename.replace(/\.[^/.]+$/, ""); // 移除扩展名
+                    const srtFilename = baseName + '.srt';
+                    
+                    messageContent += `<br><a href="/editor?file=${encodeURIComponent(srtFilename)}" target="_blank" style="margin-top: 8px;">编辑字幕</a>`;
+                }
+                
+                showMessage(messageContent, 'success');
+                
             } catch (error) {
-                messageDiv.textContent = `发生错误: ${error.message}`;
-                messageDiv.classList.add('error');
+                showMessage(`处理失败: ${error.message}`, 'error');
             } finally {
-                // 恢复按钮状态并隐藏加载动画
+                // 恢复UI状态
                 submitButton.disabled = false;
+                submitButton.textContent = '开始处理';
                 loadingDiv.style.display = 'none';
+            }
+        });
+
+        function showMessage(content, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.innerHTML = content;
+            messageDiv.className = `message ${type}`;
+        }
+
+        // 文件选择提示
+        document.getElementById('file').addEventListener('change', function(e) {
+            const fileName = e.target.files[0]?.name;
+            if (fileName) {
+                console.log('已选择文件:', fileName);
             }
         });
     </script>

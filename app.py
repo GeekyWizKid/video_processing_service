@@ -6,6 +6,7 @@ from flask_cors import CORS
 from config.paths import PathConfig
 from src.video_processing import extract_audio_from_video, generate_subtitles, embed_subtitles, \
     generate_subtitles_with_translation
+from src.subtitle_editor import SubtitleEditor
 import os
 import subprocess
 
@@ -150,9 +151,99 @@ def download_file(filename):
 
     return send_from_directory(directory, filename)
 
+@app.route('/subtitles', methods=['GET'])
+def list_subtitles():
+    """获取可用的字幕文件列表"""
+    try:
+        subtitle_dir = PathConfig.SUBTITLE_DIR
+        if not os.path.exists(subtitle_dir):
+            return jsonify({'files': []})
+        
+        files = []
+        for filename in os.listdir(subtitle_dir):
+            if filename.endswith('.srt'):
+                files.append(filename)
+        
+        return jsonify({'files': files})
+    except Exception as e:
+        return jsonify({'error': f'获取字幕文件列表失败: {str(e)}'}), 500
+
+@app.route('/subtitles/<filename>', methods=['GET'])
+def get_subtitles(filename):
+    """获取字幕内容用于编辑"""
+    subtitle_path = PathConfig.get_subtitle_path(filename)
+    
+    if not os.path.exists(subtitle_path):
+        return jsonify({'error': '字幕文件不存在'}), 404
+    
+    editor = SubtitleEditor()
+    if not editor.parse_srt_file(subtitle_path):
+        return jsonify({'error': '解析字幕文件失败'}), 500
+    
+    return jsonify({
+        'subtitles': editor.get_subtitles_data(),
+        'filename': filename
+    })
+
+@app.route('/subtitles/<filename>', methods=['PUT'])
+def update_subtitles(filename):
+    """更新字幕内容"""
+    if not request.is_json:
+        return jsonify({'error': 'Invalid content type. Please use application/json'}), 400
+    
+    data = request.get_json()
+    subtitles_data = data.get('subtitles')
+    
+    if not subtitles_data:
+        return jsonify({'error': '字幕数据不能为空'}), 400
+    
+    subtitle_path = PathConfig.get_subtitle_path(filename)
+    
+    try:
+        editor = SubtitleEditor()
+        # 重建字幕列表
+        for subtitle_data in subtitles_data:
+            editor.add_subtitle(
+                subtitle_data['start_time'],
+                subtitle_data['end_time'],
+                subtitle_data['text']
+            )
+        
+        if not editor.save_to_srt(subtitle_path):
+            return jsonify({'error': '保存字幕文件失败'}), 500
+        
+        return jsonify({'message': '字幕更新成功'})
+        
+    except Exception as e:
+        return jsonify({'error': f'更新字幕失败: {str(e)}'}), 500
+
+@app.route('/subtitles/validate', methods=['POST'])
+def validate_subtitle_time():
+    """验证时间格式"""
+    if not request.is_json:
+        return jsonify({'error': 'Invalid content type. Please use application/json'}), 400
+    
+    data = request.get_json()
+    time_str = data.get('time')
+    
+    if not time_str:
+        return jsonify({'error': '时间字符串不能为空'}), 400
+    
+    editor = SubtitleEditor()
+    is_valid = editor.validate_time_format(time_str)
+    
+    return jsonify({
+        'valid': is_valid,
+        'time': time_str
+    })
+
 @app.route('/')
 def index():
     return send_from_directory('static', 'index.html')
 
+@app.route('/editor')
+def editor():
+    return send_from_directory('static', 'editor.html')
+
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True, host='0.0.0.0', port=8080)

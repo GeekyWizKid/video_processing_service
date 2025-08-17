@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>字幕编辑器 - 从此再无生番</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Microsoft YaHei', sans-serif;
+            background: #000000;
+            color: #ffffff;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #000000 0%, #1a1a1a 25%, #000000 50%, #0d0d0d 75%, #000000 100%);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+            z-index: -1;
+        }
+
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            background: rgba(20, 20, 20, 0.95);
+            border: 1px solid rgba(255, 153, 0, 0.2);
+            border-radius: 16px;
+            padding: 20px;
+            backdrop-filter: blur(20px);
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #ff9900;
+            margin-bottom: 8px;
+            text-shadow: 0 0 20px rgba(255, 153, 0, 0.5);
+        }
+
+        .header p {
+            color: #cccccc;
+            font-size: 14px;
+        }
+
+        .editor-container {
+            background: rgba(20, 20, 20, 0.95);
+            border: 1px solid rgba(255, 153, 0, 0.2);
+            border-radius: 16px;
+            backdrop-filter: blur(20px);
+            box-shadow: 
+                0 20px 40px rgba(255, 153, 0, 0.1),
+                0 0 100px rgba(255, 153, 0, 0.05);
+            overflow: hidden;
+        }
+
+        .toolbar {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 153, 0, 0.2);
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .file-input-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .file-select {
+            background: rgba(40, 40, 40, 0.8);
+            border: 2px solid rgba(255, 153, 0, 0.3);
+            border-radius: 8px;
+            color: #ffffff;
+            padding: 8px 12px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .file-select:hover {
+            border-color: rgba(255, 153, 0, 0.6);
+            background: rgba(50, 50, 50, 0.9);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #ff9900 0%, #ff7700 100%);
+            border: none;
+            border-radius: 8px;
+            color: #ffffff;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(255, 153, 0, 0.4);
+        }
+
+        .btn:disabled {
+            background: rgba(100, 100, 100, 0.5);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            background: rgba(60, 60, 60, 0.8);
+            border: 1px solid rgba(255, 153, 0, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(80, 80, 80, 0.9);
+            border-color: rgba(255, 153, 0, 0.6);
+        }
+
+        .subtitle-list {
+            max-height: 600px;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .subtitle-item {
+            background: rgba(30, 30, 30, 0.8);
+            border: 1px solid rgba(60, 60, 60, 0.5);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .subtitle-item:hover {
+            border-color: rgba(255, 153, 0, 0.4);
+            background: rgba(40, 40, 40, 0.9);
+        }
+
+        .subtitle-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .subtitle-index {
+            color: #ff9900;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .subtitle-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .time-inputs {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .time-input {
+            background: rgba(50, 50, 50, 0.8);
+            border: 1px solid rgba(255, 153, 0, 0.3);
+            border-radius: 6px;
+            color: #ffffff;
+            padding: 6px 10px;
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+            width: 120px;
+        }
+
+        .time-input:focus {
+            outline: none;
+            border-color: #ff9900;
+            box-shadow: 0 0 0 2px rgba(255, 153, 0, 0.2);
+        }
+
+        .time-separator {
+            color: #888;
+            font-weight: bold;
+        }
+
+        .text-input {
+            width: 100%;
+            background: rgba(50, 50, 50, 0.8);
+            border: 1px solid rgba(255, 153, 0, 0.3);
+            border-radius: 6px;
+            color: #ffffff;
+            padding: 8px 12px;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 60px;
+            line-height: 1.4;
+        }
+
+        .text-input:focus {
+            outline: none;
+            border-color: #ff9900;
+            box-shadow: 0 0 0 2px rgba(255, 153, 0, 0.2);
+        }
+
+        .btn-small {
+            padding: 4px 8px;
+            font-size: 12px;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
+        }
+
+        .btn-danger:hover {
+            box-shadow: 0 5px 15px rgba(255, 68, 68, 0.4);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #888;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            margin: 0 auto 20px;
+            border: 3px solid rgba(255, 153, 0, 0.2);
+            border-top: 3px solid #ff9900;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .message {
+            margin: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .message.success {
+            background: rgba(0, 255, 153, 0.1);
+            border: 1px solid rgba(0, 255, 153, 0.3);
+            color: #00ff99;
+        }
+
+        .message.error {
+            background: rgba(255, 77, 77, 0.1);
+            border: 1px solid rgba(255, 77, 77, 0.3);
+            color: #ff4d4d;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #888;
+        }
+
+        .empty-state h3 {
+            color: #ff9900;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .time-inputs {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .time-input {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>字幕编辑器</h1>
+            <p>编辑字幕时间轴和文本内容</p>
+        </div>
+
+        <div class="editor-container">
+            <div class="toolbar">
+                <div class="file-input-group">
+                    <select id="fileSelect" class="file-select">
+                        <option value="">请选择字幕文件</option>
+                    </select>
+                    <button id="loadBtn" class="btn">加载字幕</button>
+                </div>
+                <button id="saveBtn" class="btn" disabled>保存字幕</button>
+                <button id="addBtn" class="btn btn-secondary" disabled>添加字幕</button>
+                <a href="/" class="btn btn-secondary">返回首页</a>
+            </div>
+
+            <div id="content">
+                <div class="empty-state">
+                    <h3>没有加载字幕文件</h3>
+                    <p>请先选择并加载一个字幕文件开始编辑</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentSubtitles = [];
+        let currentFilename = '';
+
+        // 页面加载时获取可用的字幕文件
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAvailableFiles();
+        });
+
+        async function loadAvailableFiles() {
+            try {
+                const response = await fetch('/subtitles');
+                
+                if (!response.ok) {
+                    throw new Error('获取文件列表失败');
+                }
+                
+                const data = await response.json();
+                const fileSelect = document.getElementById('fileSelect');
+                
+                fileSelect.innerHTML = '<option value="">请选择字幕文件</option>';
+                
+                data.files.forEach(filename => {
+                    const option = document.createElement('option');
+                    option.value = filename;
+                    option.textContent = filename;
+                    fileSelect.appendChild(option);
+                });
+                
+                // 如果URL中有文件参数，自动选择
+                const urlParams = new URLSearchParams(window.location.search);
+                const filename = urlParams.get('file');
+                
+                if (filename && data.files.includes(filename)) {
+                    fileSelect.value = filename;
+                    await loadSubtitles(filename);
+                }
+                
+            } catch (error) {
+                console.error('获取文件列表失败:', error);
+                showMessage('获取字幕文件列表失败', 'error');
+            }
+        }
+
+        document.getElementById('loadBtn').addEventListener('click', async function() {
+            const filename = document.getElementById('fileSelect').value;
+            if (!filename) {
+                showMessage('请选择字幕文件', 'error');
+                return;
+            }
+
+            await loadSubtitles(filename);
+        });
+
+        async function loadSubtitles(filename) {
+            const content = document.getElementById('content');
+            content.innerHTML = `
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <p>正在加载字幕文件...</p>
+                </div>
+            `;
+
+            try {
+                const response = await fetch(`/subtitles/${filename}`);
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || "加载失败");
+                }
+
+                const data = await response.json();
+                currentSubtitles = data.subtitles;
+                currentFilename = data.filename;
+                
+                renderSubtitles();
+                
+                document.getElementById('saveBtn').disabled = false;
+                document.getElementById('addBtn').disabled = false;
+                
+            } catch (error) {
+                content.innerHTML = `
+                    <div class="message error">
+                        加载字幕失败: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        function renderSubtitles() {
+            const content = document.getElementById('content');
+            
+            if (currentSubtitles.length === 0) {
+                content.innerHTML = `
+                    <div class="empty-state">
+                        <h3>暂无字幕条目</h3>
+                        <p>点击"添加字幕"开始创建字幕</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const subtitleList = document.createElement('div');
+            subtitleList.className = 'subtitle-list';
+
+            currentSubtitles.forEach((subtitle, index) => {
+                const item = createSubtitleItem(subtitle, index);
+                subtitleList.appendChild(item);
+            });
+
+            content.innerHTML = '';
+            content.appendChild(subtitleList);
+        }
+
+        function createSubtitleItem(subtitle, index) {
+            const item = document.createElement('div');
+            item.className = 'subtitle-item';
+            item.innerHTML = `
+                <div class="subtitle-header">
+                    <span class="subtitle-index">#${subtitle.index}</span>
+                    <div class="subtitle-actions">
+                        <button class="btn btn-small" onclick="insertSubtitle(${index})">插入</button>
+                        <button class="btn btn-small btn-danger" onclick="deleteSubtitle(${index})">删除</button>
+                    </div>
+                </div>
+                <div class="time-inputs">
+                    <input type="text" class="time-input" value="${subtitle.start_time}" 
+                           placeholder="00:00:00,000" onchange="updateSubtitle(${index}, 'start_time', this.value)">
+                    <span class="time-separator">→</span>
+                    <input type="text" class="time-input" value="${subtitle.end_time}" 
+                           placeholder="00:00:00,000" onchange="updateSubtitle(${index}, 'end_time', this.value)">
+                </div>
+                <textarea class="text-input" placeholder="字幕文本..." 
+                          onchange="updateSubtitle(${index}, 'text', this.value)">${subtitle.text}</textarea>
+            `;
+            return item;
+        }
+
+        function updateSubtitle(index, field, value) {
+            if (currentSubtitles[index]) {
+                currentSubtitles[index][field] = value;
+            }
+        }
+
+        function deleteSubtitle(index) {
+            if (confirm('确定要删除这条字幕吗？')) {
+                currentSubtitles.splice(index, 1);
+                // 重新索引
+                currentSubtitles.forEach((subtitle, idx) => {
+                    subtitle.index = idx + 1;
+                });
+                renderSubtitles();
+            }
+        }
+
+        function insertSubtitle(index) {
+            const newSubtitle = {
+                index: index + 1,
+                start_time: '00:00:00,000',
+                end_time: '00:00:01,000',
+                text: ''
+            };
+            
+            currentSubtitles.splice(index, 0, newSubtitle);
+            
+            // 重新索引
+            currentSubtitles.forEach((subtitle, idx) => {
+                subtitle.index = idx + 1;
+            });
+            
+            renderSubtitles();
+        }
+
+        document.getElementById('addBtn').addEventListener('click', function() {
+            const newSubtitle = {
+                index: currentSubtitles.length + 1,
+                start_time: '00:00:00,000',
+                end_time: '00:00:01,000',
+                text: ''
+            };
+            
+            currentSubtitles.push(newSubtitle);
+            renderSubtitles();
+        });
+
+        document.getElementById('saveBtn').addEventListener('click', async function() {
+            if (!currentFilename) {
+                showMessage('没有加载的字幕文件', 'error');
+                return;
+            }
+
+            const saveBtn = document.getElementById('saveBtn');
+            saveBtn.disabled = true;
+            saveBtn.textContent = '保存中...';
+
+            try {
+                const response = await fetch(`/subtitles/${currentFilename}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        subtitles: currentSubtitles
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || "保存失败");
+                }
+
+                showMessage('字幕保存成功！', 'success');
+
+            } catch (error) {
+                showMessage(`保存失败: ${error.message}`, 'error');
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.textContent = '保存字幕';
+            }
+        });
+
+        function showMessage(content, type) {
+            // 移除之前的消息
+            const existingMessage = document.querySelector('.message');
+            if (existingMessage) {
+                existingMessage.remove();
+            }
+
+            const message = document.createElement('div');
+            message.className = `message ${type}`;
+            message.textContent = content;
+            
+            document.querySelector('.editor-container').appendChild(message);
+            
+            // 3秒后自动移除消息
+            setTimeout(() => {
+                if (message.parentNode) {
+                    message.remove();
+                }
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
